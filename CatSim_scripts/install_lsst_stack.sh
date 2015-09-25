@@ -30,6 +30,7 @@ setup lsst_sims
 ########################################################################
 
 # building ssh Tunnel
+# Do not forget to send Scott your ssh public key
 ssh -L 51433:fatboy-private.phys.washington.edu:1433 simsuser@gateway.astro.washington.edu
 
 # editing config/db.py
