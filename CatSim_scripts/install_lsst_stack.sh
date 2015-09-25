@@ -1,5 +1,5 @@
 ########################################################################
-# Install using conda
+# Install using conda, I did not make it using this way.
 ########################################################################
 conda config --add channels http://eupsforge.net/conda/dev
 conda install lsst-sims
