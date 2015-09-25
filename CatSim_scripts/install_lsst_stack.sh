@@ -20,6 +20,11 @@ conda update lsst-sims
 -- eups distrib install -t v10_1 lsst_apps
 -- eups distrib install lsst_sims -t sims
 -- setup lsst_sims
+
+# Setup environment
+source "/Users/lsststack/lsst/loadLSST.bash"  
+setup lsst_sims
+
 ########################################################################
 # Running examples of CatSim_GalSim interface
 ########################################################################
