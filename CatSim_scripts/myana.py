@@ -495,4 +495,3 @@ class GalSimInterpreter(object):
             namesWritten.append(fileName)
 
         return namesWritten
-
