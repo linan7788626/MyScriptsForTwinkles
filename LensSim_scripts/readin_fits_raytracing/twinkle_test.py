@@ -4,6 +4,7 @@ import libv4_cv as lv4
 import pyfits
 import subprocess as sp
 import mycosmology as mm
+import sys
 
 def re0_sigma(sigma,zl,zs):
     res = 4.0*np.pi*(sigma/mm.cv)**2.0*mm.Da2(zl,zs)/mm.Da2(zs)
@@ -230,6 +231,7 @@ def main():
     rc0 = 0.000000000001
     re0 = 6.0
     #phi0 = 30.0
+    band = sys.argv[1]
 
     ai01,ai02 = nie_alphas(xi1,xi2,xlc1,xlc2,re0,rc0,ql0)
 
@@ -241,7 +243,7 @@ def main():
 
     s = " "
     input_fits_dir = "../catsim_galsim_fits/"
-    input_fits_sh = s.join(("ls", input_fits_dir,"|grep u.fits"))
+    input_fits_sh = s.join(("ls", input_fits_dir,"|grep",band+".fits"))
     input_fits = sp.check_output(input_fits_sh,shell=True)
     input_fits = input_fits.rstrip()
     input_fits_list = input_fits.split("\n")
@@ -252,7 +254,6 @@ def main():
         zzsd = np.double(array[1])
         zzsu = np.double(array[2])
         zzs = (zzsd+zzsu)*0.5
-        band = str(array[9])[0]
 
         srcs = pyfits.getdata(input_fits_dir+i)
         srcs = np.array(srcs,dtype="<d")
@@ -274,7 +275,7 @@ def main():
         limages_tmp = lv4.call_ray_tracing(srcs,yi1,yi2,ysc1,ysc2,dsi)
         limages = limages + limages_tmp
 
-    output_file_name = "".join(("./lensed_twinkles_",band,".fits"))
+    output_file_name = "".join(("../lensed_twinkles_",band,".fits"))
     pyfits.writeto(output_file_name,limages,clobber=True)
 
     return 0
