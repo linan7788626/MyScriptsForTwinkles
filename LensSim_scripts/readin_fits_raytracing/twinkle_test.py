@@ -234,6 +234,8 @@ def main():
     band = sys.argv[1]
 
     ai01,ai02 = nie_alphas(xi1,xi2,xlc1,xlc2,re0,rc0,ql0)
+    gimage = pyfits.getdata("../lens_gals_galsim/test_"+band+".fits")
+    #----------------------------------------------------
 
 
     ysc1 = 0.0
@@ -275,6 +277,7 @@ def main():
         limages_tmp = lv4.call_ray_tracing(srcs,yi1,yi2,ysc1,ysc2,dsi)
         limages = limages + limages_tmp
 
+    limages[128:384,128:384] = limages[128:384,128:384]+gimage
     output_file_name = "".join(("../lensed_twinkles_",band,".fits"))
     pyfits.writeto(output_file_name,limages,clobber=True)
 
