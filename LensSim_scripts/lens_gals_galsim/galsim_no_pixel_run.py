@@ -59,7 +59,7 @@ def main(argv):
         dfilt  = 0         #0=g-band, 1=r-band, 2=i-band, 3=z-band
     if filt == 'r':
         dfilt  = 1         #0=g-band, 1=r-band, 2=i-band, 3=z-band
-    if filt == 'i':
+    if filt == 'u':
         dfilt  = 2         #0=g-band, 1=r-band, 2=i-band, 3=z-band
     if filt == 'z':
         dfilt  = 3         #0=g-band, 1=r-band, 2=i-band, 3=z-band

@@ -278,7 +278,7 @@ def main():
         limages = limages + limages_tmp
 
     limages[128:384,128:384] = limages[128:384,128:384]+gimage
-    output_file_name = "".join(("../lensed_twinkles_",band,".fits"))
+    output_file_name = "".join(("../final_images/lensed_twinkles_",band,".fits"))
     pyfits.writeto(output_file_name,limages,clobber=True)
 
     return 0
