@@ -270,16 +270,20 @@ def main():
         ai1 = ai01*factor_z
         ai2 = ai02*factor_z
 
-        yi1 = xi1 - ai1
-        yi2 = xi2 - ai2
+        yi1 = xi1 - ai1*0.0
+        yi2 = xi2 - ai2*0.0
 
         #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
         limages_tmp = lv4.call_ray_tracing(srcs,yi1,yi2,ysc1,ysc2,dsi)
         limages = limages + limages_tmp
 
-    limages[128:384,128:384] = limages[128:384,128:384]+gimage
-    output_file_name = "".join(("../final_images/lensed_twinkles_",band,".fits"))
+    #limages[128:384,128:384] = limages[128:384,128:384]+gimage
+    output_file_name = "".join(("../lensed_images/lensed_twinkles_",band,".fits"))
     pyfits.writeto(output_file_name,limages,clobber=True)
+
+    #limages[128:384,128:384] = limages[128:384,128:384]+gimage
+    #output_file_name = "".join(("../final_images/final_twinkles_",band,".fits"))
+    #pyfits.writeto(output_file_name,limages,clobber=True)
 
     return 0
 

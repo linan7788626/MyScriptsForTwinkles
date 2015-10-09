@@ -46,8 +46,9 @@ def main(argv):
     #Things we might want to change:
 
     pixel_scale = 0.2               # arcsec / pixel  (size units in input catalog are pixels)  0.09 is what we want.
-    zero_pt = 32.0
+    #zero_pt = 32.0
     #zero_pt = 22.0
+    zero_pt = 30
     pixels_box = 256
     #image_size = 10.0/(pixel_scale/60.0)  #5 arcmin radius
     #image_size = (pixel_scale*pixels_box)/60/(pixel_scale/60.0)
