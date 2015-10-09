@@ -21,4 +21,4 @@ SIM_TELCONFIG 0
 SIM_CAMCONFIG 1
 SIM_VISTIME 1500.0
 SIM_NSNAP 1
-object 0 0.0 0.0 20 ../sky/sed_flat.txt 0 0 0 0 0 0 fv.fits 0.09 0.0 none
+object 0 0.0 0.0 20 ../sky/sed_flat.txt 0 0 0 0 0 0 ./lens_gals_galsim/final_u.fits 0.09 0.0 none
