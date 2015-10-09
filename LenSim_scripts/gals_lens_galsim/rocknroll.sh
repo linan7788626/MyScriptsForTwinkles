@@ -8,6 +8,6 @@
 
 python ./galsim_no_pixel_run.py -i ./lens_gals.cat -o test -f g
 python ./galsim_no_pixel_run.py -i ./lens_gals.cat -o test -f r
-python ./galsim_no_pixel_run.py -i ./lens_gals.cat -o test -f u
+python ./galsim_no_pixel_run.py -i ./lens_gals.cat -o test -f i
 python ./galsim_no_pixel_run.py -i ./lens_gals.cat -o test -f z
 
