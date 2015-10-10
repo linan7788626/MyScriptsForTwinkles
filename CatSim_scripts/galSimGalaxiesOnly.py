@@ -60,7 +60,8 @@ zdn = sys.argv[1]
 zup = sys.argv[2]
 
 #cstrn = "redshift>0.1 and redshift<0.5"
-cstrn = "redshift>"+str(zdn)+" and redshift<="+str(zup)
+#cstrn = "redshift>"+str(zdn)+" and redshift<="+str(zup)
+cstrn = "redshift>"+str(zdn)
 print cstrn
 
 bulges = CatalogDBObject.from_objid('galaxyBulge')
