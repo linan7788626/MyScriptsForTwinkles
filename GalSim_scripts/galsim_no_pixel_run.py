@@ -42,7 +42,6 @@ def main(argv):
     print 'Output file is :', output_file_name
     print 'Filter is :', filt
 
-
     #Things we might want to change:
 
     pixel_scale = 0.09               # arcsec / pixel  (size units in input catalog are pixels)  0.09 is what we want.

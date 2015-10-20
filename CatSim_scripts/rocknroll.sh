@@ -1,9 +1,9 @@
-#python2.7 galSimGalaxiesOnly.py 0.0 0.5
-#python2.7 galSimGalaxiesOnly.py 0.5 0.7
-#python2.7 galSimGalaxiesOnly.py 0.7 0.9
-python2.7 galSimGalaxiesOnly.py 0.9 1.1
-#python2.7 galSimGalaxiesOnly.py 1.1 1.3
-#python2.7 galSimGalaxiesOnly.py 1.3 1.5
-#python2.7 galSimGalaxiesOnly.py 1.5 1.7
-#python2.7 galSimGalaxiesOnly.py 1.7 1.9
-#python2.7 galSimGalaxiesOnly.py 1.9 2.1
+python2.7 galSimGalaxiesOnly.py -u 0.0 -l 0.5
+python2.7 galSimGalaxiesOnly.py -u 0.5 -l 0.7
+python2.7 galSimGalaxiesOnly.py -u 0.7 -l 0.9
+python2.7 galSimGalaxiesOnly.py -u 0.9 -l 1.1
+python2.7 galSimGalaxiesOnly.py -u 1.1 -l 1.3
+python2.7 galSimGalaxiesOnly.py -u 1.3 -l 1.5
+python2.7 galSimGalaxiesOnly.py -u 1.5 -l 1.7
+python2.7 galSimGalaxiesOnly.py -u 1.7 -l 1.9
+python2.7 galSimGalaxiesOnly.py -u 1.9 -l 2.1

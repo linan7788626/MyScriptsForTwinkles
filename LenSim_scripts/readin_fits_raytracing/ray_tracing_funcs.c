@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
-#include <fitsio.h>
+/*#include <fitsio.h>*/
 //#include <omp.h>
 
 //#include "mycosmology.h"
