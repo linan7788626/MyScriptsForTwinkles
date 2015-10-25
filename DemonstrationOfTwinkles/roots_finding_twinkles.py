@@ -6,6 +6,12 @@ import numpy as np
 
 from scipy.ndimage.filters import maximum_filter
 from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
+import scipy.optimize as sco
+
+def isNewImage(x1,x2,xil1,xil2):
+    rdist = np.hypot((x1-xil1),(x2-xil2))
+    lidx = len(rdist[rdist < 1e-7])
+    return lidx
 
 def detect_local_maxima(image):
     neighborhood = generate_binary_structure(2,2)
@@ -52,30 +58,6 @@ def nie_mu(x1,x2,re0,rcore,qe):
     res = 1.0/(1.0-re0/hfunc(x1,x2)-re0*re0*rcore/(hfunc(x1,x2)*((hfunc(x1,x2)+rcore)**2+(1-qe*qe)*x1*x1)))
     return res
 
-def new_nie_all(xi1,xi2,lpar):
-    xc1 = lpar[0]
-    xc2 = lpar[1]
-    b = lpar[2]
-    s = lpar[3]
-    q = lpar[4]
-    rot = lpar[5]
-
-    dsx = xi1[1,1]-xi1[0,0]
-
-    x1,x2 = xy_rotate(xi1,xi2,xc1,xc2,rot)
-
-    wx = np.sqrt(q*q*(x1*x1+s*s)+x2*x2)
-
-    a1 = b/np.sqrt(1-q*q)*np.arctan(x1*np.sqrt(1-q*q)/(wx+s))
-    a2 = b/np.sqrt(1-q*q)*np.arctanh(x2*np.sqrt(1-q*q)/(wx+q*q*s))
-
-    hx = np.sqrt((wx+s)**2.0+(1-q*q)*x1*x1)
-    phi = x1*a1+x2*a2-b*s*np.log(hx)+b*q*s*np.log((1+q)*s)
-
-    ai2,ai1 = np.gradient(phi,dsx)
-
-    return phi,ai1,ai2#,kappa,mu,y1,y2
-
 def nie_all(xi1,xi2,xc1,xc2,b,s,q,rot,ys1,ys2):
 
     x1,x2 = xy_rotate(xi1,xi2,xc1,xc2,rot)
@@ -110,52 +92,10 @@ def nie_all(xi1,xi2,xc1,xc2,b,s,q,rot,ys1,ys2):
 
     mu = 1.0/(y11*y22-y12*y21)
 
-    return phi,td,al1,al2,kappa,mu,y1,y2,td2
+    yss1 = y1-ys1
+    yss2 = y2-ys2
 
-def multiple_nie_all(xi1,xi2,lpars_list):
-    phi = xi1*0.0
-    al1 = xi1*0.0
-    al2 = xi1*0.0
-    for i in lpars_list:
-        phi_tmp,al1_tmp,al2_tmp = lpar_nie_all(xi1,xi2,i)
-        phi = phi + phi_tmp
-        al1 = al1 + al1_tmp
-        al2 = al2 + al2_tmp
-
-    return phi,al1,al2
-
-def multiple_new_nie_all(xi1,xi2,lpars_list):
-    phi = xi1*0.0
-    al1 = xi1*0.0
-    al2 = xi1*0.0
-    for i in lpars_list:
-        phi_tmp,al1_tmp,al2_tmp = new_nie_all(xi1,xi2,i)
-        phi = phi + phi_tmp
-        al1 = al1 + al1_tmp
-        al2 = al2 + al2_tmp
-
-    return phi,al1,al2
-
-def lpar_nie_all(xi1,xi2,lpar):
-
-    xc1 = lpar[0]
-    xc2 = lpar[1]
-    b = lpar[2]
-    s = lpar[3]
-    q = lpar[4]
-    rot = lpar[5]
-
-    x1,x2 = xy_rotate(xi1,xi2,xc1,xc2,rot)
-
-    wx = np.sqrt(q*q*(x1*x1+s*s)+x2*x2)
-
-    al1 = b/np.sqrt(1-q*q)*np.arctan(x1*np.sqrt(1-q*q)/(wx+s))
-    al2 = b/np.sqrt(1-q*q)*np.arctanh(x2*np.sqrt(1-q*q)/(wx+q*q*s))
-
-    hx = np.sqrt((wx+s)**2.0+(1-q*q)*x1*x1)
-    phi = x1*al1+x2*al2-b*s*np.log(hx)+b*q*s*np.log((1+q)*s)
-
-    return phi,al1,al2
+    return phi,td,al1,al2,kappa,mu,y1,y2,td2,yss1,yss2
 
 def lensed_images(xi1,xi2,yi1,yi2,gpar):
 
@@ -219,6 +159,15 @@ def lens_galaxies(xi1,xi2,glpar):
 
     return g_lens
 
+def root_finding(x_guess,xlc1,xlc2,re0,rc0,ql0,phi0,y10,y20):
+    def simple_lensing_equation(x):
+        y = x*0.0
+        y[0],y[1] = nie_all(x[0],x[1],xlc1,xlc2,re0,rc0,ql0,phi0,y10,y20)[9:]
+        return [y[0],y[1]]
+
+    sol = sco.root(simple_lensing_equation,[x_guess[0],x_guess[1]],method='hybr')
+    return sol.x
+
 def main():
 
     nnn = 512
@@ -251,11 +200,15 @@ def main():
     ql0 = 0.699999999999
     rc0 = 0.000000000001
     re0 = 1.0
-    phi0 = 30.0
+    phi0 = 0.0
     lpar = np.asarray([xlc1, xlc2, re0, rc0, ql0, phi0])
 
     lpars_list = []
     lpars_list.append(lpar)
+
+    y10 = 0.33984375*nnn/2
+    y20 = -0.11328125*nnn/2
+
     #----------------------------------------------------
     # lens parameters for main halo
     xls1 = 0.7
@@ -277,15 +230,17 @@ def main():
     base0[:,:,1] = g_lens*128
     base0[:,:,2] = g_lens*0
 
-    x = 0.33984375*nnn/2
-    y = -0.11328125*nnn/2
+    #x = 0.33984375*nnn/2
+    #y = -0.11328125*nnn/2
+
+    x = 0.013984375*nnn/2
+    y = -0.021328125*nnn/2
     step = 1
     gr_sig = 0.1
 
     LeftButton=0
 
     #----------------------------------------------------
-
     ic = FPS/6.0
 
     i = 0
@@ -371,6 +326,31 @@ def main():
         gpar = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
         #----------------------------------------------
 
+        ##----------------------------------------------
+        ##parameters of SNs.
+        ##----------------------------------------------
+        #g_amp = 1.0         # peak brightness value
+        #g_sig = 0.01          # Gaussian "sigma" (i.e., size)
+        #g_xcen = x*2.0/nnn+0.05  # x position of center
+        #g_ycen = y*2.0/nnn+0.05  # y position of center
+        #g_axrat = 1.0       # minor-to-major axis ratio
+        #g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
+        #gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
+
+        #phi,td,ai1,ai2,kappa,mu,yi1,yi2,td2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
+        #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
+
+        ##g_lensimage = detect_local_maxima(g_lensimage)
+        #g_image = g_image
+        #g_lensimage = g_lensimage*0.0
+        ##g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
+        #g_sn,g_lsn = lensed_images(xi1,xi2,yi1,yi2,gpsn)
+        #g_lsn = detect_local_maxima(g_lsn)
+
+        ##g_sn = tophat_2d(xi1,xi2,gpsn)
+        ##g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
+        ##g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
+
         #----------------------------------------------
         #parameters of SNs.
         #----------------------------------------------
@@ -382,19 +362,37 @@ def main():
         g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
         gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
 
-        phi,td,ai1,ai2,kappa,mu,yi1,yi2,td2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
+        phi,td,ai1,ai2,kappa,mu,yi1,yi2,td2,yss1,yss2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
+        g_lensimage = g_lensimage*0.0
+        g_sn,g_lsn_tmp = lensed_images(xi1,xi2,yi1,yi2,gpsn)
+        g_lsn_tmp = detect_local_maxima(g_lsn_tmp)
 
-        #g_lensimage = detect_local_maxima(g_lensimage)
-        g_image = g_image
-        g_lensimage = g_lensimage
-        #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
-        g_sn,g_lsn = lensed_images(xi1,xi2,yi1,yi2,gpsn)
-        g_lsn = detect_local_maxima(g_lsn)
+        xr1 = np.zeros((50))
+        xr2 = np.zeros((50))
+        xg1 = xi1[g_lsn_tmp>0]
+        xg2 = xi2[g_lsn_tmp>0]
+        ncount = 0
+        for i in xrange(len(xg1)):
+            xrt1,xrt2 = root_finding([xg1[i],xg2[i]],xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
+            if isNewImage(xrt1,xrt2,xr1,xr2) <= 0:
+                xr1[ncount]=xrt1
+                xr2[ncount]=xrt2
+                ncount = ncount + 1
 
-        #g_sn = tophat_2d(xi1,xi2,gpsn)
-        #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
-        #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
+        print xg1
+        print xr1
+        print xg2
+        print xr2
+        print ncount
+
+        xr1_idx = (xr1+boxsize/2.0-dsx/2.0)/dsx
+        xr1_idx = xr1_idx.astype("int")
+        xr2_idx = (xr2+boxsize/2.0-dsx/2.0)/dsx
+        xr2_idx = xr2_idx.astype("int")
+
+        g_lsn = g_lsn_tmp*0.0
+        g_lsn[xr1_idx,xr2_idx] = 100.0
 
 
         sktd = td/td.max()*ic

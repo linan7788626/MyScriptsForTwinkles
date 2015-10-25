@@ -6,6 +6,7 @@ import numpy as np
 
 from scipy.ndimage.filters import maximum_filter
 from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
+import scipy.optimize as sco
 
 def detect_local_maxima(image):
     neighborhood = generate_binary_structure(2,2)
@@ -110,7 +111,9 @@ def nie_all(xi1,xi2,xc1,xc2,b,s,q,rot,ys1,ys2):
 
     mu = 1.0/(y11*y22-y12*y21)
 
-    return phi,td,al1,al2,kappa,mu,y1,y2,td2
+    rdist = np.sqrt((y1-ys1)**2.0+(y2-ys2)**2.0)
+
+    return phi,td,al1,al2,kappa,mu,y1,y2,td2,rdist
 
 def multiple_nie_all(xi1,xi2,lpars_list):
     phi = xi1*0.0
@@ -219,6 +222,23 @@ def lens_galaxies(xi1,xi2,glpar):
 
     return g_lens
 
+def root_finding(x_guess):
+    def simple_lensing_equation(x):
+        y = x*0.0
+        y[0],y[1] = nie_all(x[0],x[1],xlc1,xlc2,re0,rc0,ql0,phi0,y10,y20)[6:8]
+        return [y[0],y[1]]
+
+    sol = sco.root(simple_lensing_equation,[x_guess[0],x_gess[1]],method='hybr')
+    return sol.x
+
+def nearest_neighbors(rdist,nnn):
+    lensed_points = rdist*0.0
+    indexes = np.indices((np.shape(rdist)[0],np.shape(rdist)[1]))
+
+    idx = np.argsort(rdist.flatten())[:nnn]
+    lensed_points[indexes[0].flatten()[idx],indexes[1].flatten()[idx]] = 1.0
+    return lensed_points
+
 def main():
 
     nnn = 512
@@ -256,6 +276,10 @@ def main():
 
     lpars_list = []
     lpars_list.append(lpar)
+
+    y10 = 0.33984375*nnn/2
+    y20 = -0.11328125*nnn/2
+
     #----------------------------------------------------
     # lens parameters for main halo
     xls1 = 0.7
@@ -382,15 +406,16 @@ def main():
         g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
         gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
 
-        phi,td,ai1,ai2,kappa,mu,yi1,yi2,td2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
+        phi,td,ai1,ai2,kappa,mu,yi1,yi2,td2,rdist = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
 
         #g_lensimage = detect_local_maxima(g_lensimage)
         g_image = g_image
-        g_lensimage = g_lensimage
+        g_lensimage = g_lensimage*0.0
         #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
         g_sn,g_lsn = lensed_images(xi1,xi2,yi1,yi2,gpsn)
-        g_lsn = detect_local_maxima(g_lsn)
+        #g_lsn = detect_local_maxima(g_lsn)
+        g_lsn = nearest_neighbors(rdist,4)
 
         #g_sn = tophat_2d(xi1,xi2,gpsn)
         #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
