@@ -380,12 +380,6 @@ def main():
                 xr2[ncount]=xrt2
                 ncount = ncount + 1
 
-        print xg1
-        print xr1
-        print xg2
-        print xr2
-        print ncount
-
         xr1_idx = (xr1+boxsize/2.0-dsx/2.0)/dsx
         xr1_idx = xr1_idx.astype("int")
         xr2_idx = (xr2+boxsize/2.0-dsx/2.0)/dsx
