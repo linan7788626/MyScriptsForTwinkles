@@ -4,6 +4,7 @@ from pygame.locals import *
 from sys import exit
 import numpy as np
 
+from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.filters import maximum_filter
 from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
 import scipy.optimize as sco
@@ -236,7 +237,7 @@ def nearest_neighbors(rdist,nnn):
     indexes = np.indices((np.shape(rdist)[0],np.shape(rdist)[1]))
 
     idx = np.argsort(rdist.flatten())[:nnn]
-    lensed_points[indexes[0].flatten()[idx],indexes[1].flatten()[idx]] = 1.0
+    lensed_points[indexes[0].flatten()[idx],indexes[1].flatten()[idx]] = 256.0
     return lensed_points
 
 def main():
@@ -416,6 +417,7 @@ def main():
         g_sn,g_lsn = lensed_images(xi1,xi2,yi1,yi2,gpsn)
         #g_lsn = detect_local_maxima(g_lsn)
         g_lsn = nearest_neighbors(rdist,4)
+        g_lsn = gaussian_filter(g_lsn,5.0)
 
         #g_sn = tophat_2d(xi1,xi2,gpsn)
         #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)

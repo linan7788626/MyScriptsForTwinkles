@@ -4,6 +4,7 @@ from pygame.locals import *
 from sys import exit
 import numpy as np
 
+from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.filters import maximum_filter
 from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
 import scipy.optimize as sco
@@ -165,7 +166,9 @@ def root_finding(x_guess,xlc1,xlc2,re0,rc0,ql0,phi0,y10,y20):
         y[0],y[1] = nie_all(x[0],x[1],xlc1,xlc2,re0,rc0,ql0,phi0,y10,y20)[9:]
         return [y[0],y[1]]
 
-    sol = sco.root(simple_lensing_equation,[x_guess[0],x_guess[1]],method='hybr')
+    sol = sco.root(simple_lensing_equation,[x_guess[0],x_guess[1]],method='krylov')
+    #,options={'xtol':1e-9})
+    # 'anderson','hybr','lm','broyden1','broyden2','anderson','linearmixing','diagbroyden','excitingmixing','krylov','df-sane'
     return sol.x
 
 def main():
@@ -356,14 +359,15 @@ def main():
         #----------------------------------------------
         g_amp = 1.0         # peak brightness value
         g_sig = 0.01          # Gaussian "sigma" (i.e., size)
-        g_xcen = x*2.0/nnn+0.05  # x position of center
-        g_ycen = y*2.0/nnn+0.05  # y position of center
+        g_xcen = y*2.0/nnn+0.05  # x position of center
+        g_ycen = x*2.0/nnn+0.05  # y position of center
         g_axrat = 1.0       # minor-to-major axis ratio
         g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
         gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
 
         phi,td,ai1,ai2,kappa,mu,yi1,yi2,td2,yss1,yss2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
+        g_image = g_image*0.0
         g_lensimage = g_lensimage*0.0
         g_sn,g_lsn_tmp = lensed_images(xi1,xi2,yi1,yi2,gpsn)
         g_lsn_tmp = detect_local_maxima(g_lsn_tmp)
@@ -386,7 +390,9 @@ def main():
         xr2_idx = xr2_idx.astype("int")
 
         g_lsn = g_lsn_tmp*0.0
-        g_lsn[xr1_idx,xr2_idx] = 100.0
+        g_lsn[xr1_idx,xr2_idx] = 256.0
+
+        g_lsn = gaussian_filter(g_lsn,5.0)
 
 
         sktd = td/td.max()*ic

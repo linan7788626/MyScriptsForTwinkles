@@ -4,6 +4,7 @@ from pygame.locals import *
 from sys import exit
 import numpy as np
 
+from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.filters import maximum_filter
 from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
 
@@ -13,7 +14,7 @@ def detect_local_maxima(image):
     background = (image==0)
     eroded_background = binary_erosion(background, structure=neighborhood, border_value=1)
     detected_peaks = local_max - eroded_background
-    return detected_peaks
+    return detected_peaks*256.0
 
 #def re0_sigma(sigma):
 #    cv = 3e5
@@ -387,10 +388,11 @@ def main():
 
         #g_lensimage = detect_local_maxima(g_lensimage)
         g_image = g_image
-        g_lensimage = g_lensimage
+        g_lensimage = g_lensimage*0.0
         #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
         g_sn,g_lsn = lensed_images(xi1,xi2,yi1,yi2,gpsn)
         g_lsn = detect_local_maxima(g_lsn)
+        g_lsn = gaussian_filter(g_lsn,5.0)
 
         #g_sn = tophat_2d(xi1,xi2,gpsn)
         #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
