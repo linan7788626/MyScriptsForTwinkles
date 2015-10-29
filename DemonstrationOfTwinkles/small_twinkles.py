@@ -4,6 +4,8 @@ from pygame.locals import *
 from sys import exit
 import numpy as np
 
+from scipy.ndimage.filters import gaussian_filter
+
 def nie_all(xi1,xi2,xc1,xc2,b,s,q,rot,ys1,ys2):
 
     x1,x2 = xy_rotate(xi1,xi2,xc1,xc2,rot)
@@ -231,6 +233,7 @@ def main():
         phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
         g_sn,g_lsn = lensed_images(xi1,xi2,yi1,yi2,gpsn)
+        g_lsn = gaussian_filter(g_lsn,2.0)
 
         sktd = td/td.max()*ic
         itmp = (i)%(FPS)
@@ -241,9 +244,9 @@ def main():
         base1[:,:,1] = g_sn*100*(1.0+ratio0)/2+g_image*256
         base1[:,:,2] = g_sn*100*(1.0+ratio0)/2+g_image*256
 
-        base2[:,:,0] = g_lsn*100*(1.0+ratio)/2+g_lensimage*102
-        base2[:,:,1] = g_lsn*100*(1.0+ratio)/2+g_lensimage*178
-        base2[:,:,2] = g_lsn*100*(1.0+ratio)/2+g_lensimage*256
+        base2[:,:,0] = g_lsn*200*(1.0+ratio)/2+g_lensimage*102
+        base2[:,:,1] = g_lsn*200*(1.0+ratio)/2+g_lensimage*178
+        base2[:,:,2] = g_lsn*200*(1.0+ratio)/2+g_lensimage*256
 
         wf = base1+base2
 
